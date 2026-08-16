@@ -1,0 +1,38 @@
+version: 1
+name: agentshield-runtime-policy-example
+status: illustrative
+
+# This file documents the policy intent demonstrated by the deterministic
+# Python engine. It is not parsed by the runtime in this portfolio lab.
+rules:
+  - id: AS-RUNTIME-001
+    name: block-sensitive-exfiltration-trajectory
+    when:
+      prior_tool_class: sensitive_read
+      current_tool_class: external_write
+    action: BLOCK
+    reason: sensitive-read followed by external-write
+
+  - id: AS-RUNTIME-002
+    name: approval-for-destructive-actions
+    when:
+      tool_destructive: true
+    action: REQUIRE_APPROVAL
+    reason: destructive tools require explicit human authorization
+
+  - id: AS-RUNTIME-003
+    name: redact-approved-sensitive-egress
+    when:
+      data_labels_any: [PII, PCI, PHI, SECRET, CREDENTIAL]
+      destination_external: true
+      user_intent_aligned: true
+      untrusted_context: false
+    action: ALLOW_WITH_REDACTION
+    redact: [matched_sensitive_labels]
+
+  - id: AS-RUNTIME-004
+    name: allow-low-risk-aligned-tool-use
+    when:
+      user_intent_aligned: true
+      hard_policy_violation: false
+    action: ALLOW

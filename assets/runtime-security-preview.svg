@@ -2,23 +2,27 @@
   <rect width="1200" height="630" rx="28" fill="#0b1220"/>
   <rect x="34" y="34" width="1132" height="562" rx="22" fill="#111827" stroke="#263244"/>
   <text x="72" y="92" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">AgentShield Runtime Security</text>
-  <text x="72" y="124" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="17">Intent-aware control plane for AI agent and MCP tool execution</text>
+  <text x="72" y="124" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="17">Intent-aware control plane for AI agent and MCP-style tool execution</text>
 
-  <rect x="72" y="160" width="240" height="92" rx="16" fill="#172033" stroke="#334155"/>
-  <text x="92" y="192" fill="#94a3b8" font-family="Arial" font-size="14">SYNTHETIC SCENARIOS</text>
-  <text x="92" y="231" fill="#f8fafc" font-family="Arial" font-size="34" font-weight="700">5</text>
+  <rect x="72" y="160" width="196" height="92" rx="16" fill="#172033" stroke="#334155"/>
+  <text x="90" y="192" fill="#94a3b8" font-family="Arial" font-size="13">SCENARIOS</text>
+  <text x="90" y="231" fill="#f8fafc" font-family="Arial" font-size="34" font-weight="700">6</text>
 
-  <rect x="328" y="160" width="240" height="92" rx="16" fill="#172033" stroke="#334155"/>
-  <text x="348" y="192" fill="#94a3b8" font-family="Arial" font-size="14">BLOCKED</text>
-  <text x="348" y="231" fill="#f87171" font-family="Arial" font-size="34" font-weight="700">1</text>
+  <rect x="284" y="160" width="196" height="92" rx="16" fill="#172033" stroke="#334155"/>
+  <text x="302" y="192" fill="#94a3b8" font-family="Arial" font-size="13">BLOCKED</text>
+  <text x="302" y="231" fill="#f87171" font-family="Arial" font-size="34" font-weight="700">1</text>
 
-  <rect x="584" y="160" width="240" height="92" rx="16" fill="#172033" stroke="#334155"/>
-  <text x="604" y="192" fill="#94a3b8" font-family="Arial" font-size="14">APPROVAL REQUIRED</text>
-  <text x="604" y="231" fill="#fbbf24" font-family="Arial" font-size="34" font-weight="700">1</text>
+  <rect x="496" y="160" width="196" height="92" rx="16" fill="#172033" stroke="#334155"/>
+  <text x="514" y="192" fill="#94a3b8" font-family="Arial" font-size="13">APPROVAL</text>
+  <text x="514" y="231" fill="#fbbf24" font-family="Arial" font-size="34" font-weight="700">1</text>
 
-  <rect x="840" y="160" width="240" height="92" rx="16" fill="#172033" stroke="#334155"/>
-  <text x="860" y="192" fill="#94a3b8" font-family="Arial" font-size="14">ALLOWED</text>
-  <text x="860" y="231" fill="#34d399" font-family="Arial" font-size="34" font-weight="700">3</text>
+  <rect x="708" y="160" width="196" height="92" rx="16" fill="#172033" stroke="#334155"/>
+  <text x="726" y="192" fill="#94a3b8" font-family="Arial" font-size="13">REDACTED</text>
+  <text x="726" y="231" fill="#60a5fa" font-family="Arial" font-size="34" font-weight="700">1</text>
+
+  <rect x="920" y="160" width="196" height="92" rx="16" fill="#172033" stroke="#334155"/>
+  <text x="938" y="192" fill="#94a3b8" font-family="Arial" font-size="13">ALLOWED</text>
+  <text x="938" y="231" fill="#34d399" font-family="Arial" font-size="34" font-weight="700">3</text>
 
   <text x="72" y="304" fill="#e2e8f0" font-family="Arial" font-size="18" font-weight="700">High-risk trajectory</text>
   <rect x="72" y="326" width="1008" height="96" rx="16" fill="#0f172a" stroke="#334155"/>
@@ -42,5 +46,5 @@
   <text x="577" y="508" fill="#64748b" font-family="Arial" font-size="20">→</text>
   <text x="611" y="508" fill="#cbd5e1" font-family="Arial" font-size="16">MCP / API / SaaS / DB</text>
 
-  <text x="72" y="558" fill="#64748b" font-family="Arial" font-size="14">Deterministic synthetic evaluation • Explainable decisions • No real credentials or production tool execution</text>
+  <text x="72" y="558" fill="#64748b" font-family="Arial" font-size="14">Deterministic synthetic evaluation • 4/4 benign preserved • 2/2 controls intercepted • 0 false blocks</text>
 </svg>

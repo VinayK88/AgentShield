@@ -7,12 +7,14 @@ jobs:
       matrix:
         python-version: ['3.10','3.11','3.12']
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install --upgrade pip
       - run: pip install -e '.[api]'
       - run: python -m unittest discover -s tests -v
       - run: agentshield > /tmp/report.json
+      - run: python -c "from agentshield.api import app; assert any(r.path == '/evaluate' for r in app.routes)"
+      - run: python scripts/benchmark.py --iterations 1000 > /tmp/agentshield-benchmark.json
       - run: python -m compileall agentshield

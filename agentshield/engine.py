@@ -13,6 +13,7 @@ DEFAULT_TOOLS = {
     "delete_cloud_resource": ToolProfile("delete_cloud_resource", write=True, destructive=True),
 }
 
+
 class RuntimePolicyEngine:
     def __init__(self, tools: dict[str, ToolProfile] | None = None, history_size: int = 8):
         self.tools = tools or DEFAULT_TOOLS
@@ -32,15 +33,16 @@ class RuntimePolicyEngine:
             risk += 25
             reasons.append("untrusted context influenced the proposed action")
 
-        sensitive = bool(SENSITIVE_LABELS.intersection(call.data_labels))
+        sensitive_labels = SENSITIVE_LABELS.intersection(call.data_labels)
+        sensitive = bool(sensitive_labels)
         if sensitive:
-            risk += 25
+            risk += 15
             reasons.append("sensitive data is present in the action context")
 
         if tool.external and sensitive:
-            risk += 35
+            risk += 20
             reasons.append("sensitive data is moving toward an external destination")
-            redactions.extend(sorted(SENSITIVE_LABELS.intersection(call.data_labels)))
+            redactions.extend(sorted(sensitive_labels))
 
         intent = call.user_intent.lower()
         action = call.action.lower()
