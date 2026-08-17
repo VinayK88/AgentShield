@@ -19,6 +19,8 @@
 
 ---
 
+![AgentShield dashboard preview](assets/dashboard-preview.svg)
+
 ![AgentShield runtime security preview](assets/runtime-security-preview.svg)
 
 ## Overview
