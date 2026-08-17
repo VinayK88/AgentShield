@@ -1,5 +1,6 @@
-from .engine import RuntimePolicyEngine
+from .engine import DEFAULT_TOOLS, RuntimePolicyEngine
 from .fixtures import BENIGN_CALL_IDS, CONTROL_CALL_IDS, EXPECTED_DECISIONS, SCENARIOS
+from .trajectory_ml import trajectory_report
 
 
 def build_report() -> dict:
@@ -39,5 +40,6 @@ def build_report() -> dict:
             "controls_intercepted": controls_intercepted,
             "control_total": len(CONTROL_CALL_IDS),
         },
+        "trajectory_ml": trajectory_report(SCENARIOS, DEFAULT_TOOLS),
         "decisions": [decision.__dict__ for decision in decisions],
     }
