@@ -1,5 +1,7 @@
 from .engine import DEFAULT_TOOLS, RuntimePolicyEngine
 from .fixtures import BENIGN_CALL_IDS, CONTROL_CALL_IDS, EXPECTED_DECISIONS, SCENARIOS
+from .measurement import bootstrap_utility_difference, compare_controls
+from .measurement_fixtures import synthetic_safeguard_experiment
 from .trajectory_ml import trajectory_report
 
 
@@ -26,6 +28,18 @@ def build_report() -> dict:
         if by_id[call_id].decision in {"BLOCK", "REQUIRE_APPROVAL"}
     )
 
+    strict, adaptive = synthetic_safeguard_experiment()
+    measurement = compare_controls(strict, adaptive)
+    measurement["bootstrap_utility_difference"] = bootstrap_utility_difference(
+        strict,
+        adaptive,
+    )
+    measurement["interpretation"] = (
+        "Synthetic strict-vs-adaptive comparison. The candidate accepts one residual "
+        "risky outcome to reduce benign friction; values demonstrate measurement "
+        "mechanics and are not production efficacy claims."
+    )
+
     return {
         "summary": {
             "scenarios": len(decisions),
@@ -40,6 +54,7 @@ def build_report() -> dict:
             "controls_intercepted": controls_intercepted,
             "control_total": len(CONTROL_CALL_IDS),
         },
+        "security_control_measurement": measurement,
         "trajectory_ml": trajectory_report(SCENARIOS, DEFAULT_TOOLS),
         "decisions": [decision.__dict__ for decision in decisions],
     }
