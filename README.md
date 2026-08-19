@@ -2,18 +2,18 @@
 
 # AgentShield
 
-### Runtime Security Gateway for AI Agents & MCP · Learned Trajectory Risk
+### Runtime Security Gateway for AI Agents & MCP · Learned Trajectory Risk · Control Measurement
 
-**Deterministic authorization + learned sequence evidence for agent tool use.**
+**Deterministic authorization + learned sequence evidence + risk-vs-friction evaluation for agent tool use.**
 
 [![CI](https://github.com/VinayK88/AgentShield/actions/workflows/ci.yml/badge.svg)](https://github.com/VinayK88/AgentShield/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10--3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Runtime Security](https://img.shields.io/badge/AI%20Agent-Runtime%20Security-0F766E)](#runtime-security-model)
 [![Sequence ML](https://img.shields.io/badge/Sequence%20ML-Markov%20Surprisal-6D28D9)](#learned-trajectory-model)
+[![Measurement](https://img.shields.io/badge/Security-Measurement-D29922)](#security-control-measurement)
 [![MCP](https://img.shields.io/badge/MCP-Aware%20Tool%20Governance-334155)](#mcp-scope)
-[![Evaluation](https://img.shields.io/badge/Evaluation-Synthetic%20Only-475569)](#evaluation-boundary)
 
-> **Core question:** Does this tool call remain authorized—and does the sequence of actions look unusual relative to normal agent workflows?
+> **Core question:** Does the safeguard reduce risky agent behavior enough to justify the friction it introduces?
 
 </div>
 
@@ -29,29 +29,23 @@ AI-agent security changes once a model can **act**. Individually reasonable call
 
 AgentShield places an independent runtime security layer between an AI agent and downstream MCP-style tools, APIs, SaaS services, databases, or infrastructure actions.
 
-It now combines two deliberately separate evidence planes:
+It separates three concerns:
 
 ```text
 Deterministic runtime policy
         +
-Learned trajectory surprisal
+Learned trajectory evidence
+        +
+Security-control measurement
         ↓
-Auditable security decision + behavioral context
+Auditable decision + behavioral context + risk/friction tradeoff
 ```
 
-**The deterministic policy remains authoritative.** The learned model can explain that a sequence is unusual, but it cannot silently convert an allowed action into a block or override a hard security rule.
+**The deterministic policy remains authoritative.** The learned model can explain that a sequence is unusual, but it cannot silently grant privilege or override a hard security rule.
 
 ## Runtime security model
 
-The policy engine evaluates:
-
-- declared user intent;
-- tool identity and read/write/destructive behavior;
-- external destinations;
-- sensitive labels such as PII/PCI/PHI/secrets/credentials;
-- untrusted-context signals;
-- delegation state;
-- recent same-agent call history.
+The policy engine evaluates declared user intent, tool identity, read/write/destructive behavior, external destinations, sensitive labels, untrusted context, delegation state, and recent same-agent call history.
 
 It returns one of four explicit actions:
 
@@ -62,9 +56,7 @@ It returns one of four explicit actions:
 | `REQUIRE_APPROVAL` | execution pauses for an authorized human |
 | `BLOCK` | hard policy or dangerous trajectory prevents execution |
 
-## Synthetic baseline
-
-The deterministic fixture contains six representative tool-call scenarios.
+## Synthetic policy baseline
 
 | Measure | Baseline |
 | --- | ---: |
@@ -79,11 +71,45 @@ The deterministic fixture contains six representative tool-call scenarios.
 
 These are synthetic regression results, not production efficacy claims.
 
+## Security-control measurement
+
+Blocking more actions is not automatically better security. A useful safeguard should reduce risky outcomes **without unnecessarily breaking legitimate agent work**.
+
+AgentShield therefore measures the control as a security data-science system, not only as a policy engine.
+
+Representative metrics include:
+
+- **prevented-risk rate** — risky synthetic outcomes intercepted;
+- **benign false-positive rate** — legitimate tasks unnecessarily blocked or escalated;
+- **legitimate task completion** — whether safe work still succeeds;
+- **approval rate and approval latency** — operational friction from human checkpoints;
+- **detection latency** — how quickly risky behavior is surfaced;
+- **recovery success** — whether interrupted workflows recover safely;
+- **net security utility** — transparent risk reduction minus illustrative friction costs.
+
+The repository includes a deterministic **strict-vs-adaptive safeguard experiment** plus a dependency-free bootstrap interval for the candidate-minus-baseline utility difference.
+
+```text
+Strict control                  Adaptive control
+     │                               │
+     ├─ risk prevented               ├─ risk prevented
+     ├─ false positives              ├─ false positives
+     ├─ task completion              ├─ task completion
+     └─ approval latency             └─ approval latency
+              \                     /
+               \                   /
+                → security utility ←
+```
+
+The point is not to claim a universal utility formula. The point is to make the tradeoff explicit, inspectable, and sensitivity-testable.
+
+See `docs/security-measurement.md` for the measurement contract and production caveats.
+
 ## Learned trajectory model
 
-AgentShield now includes a **Laplace-smoothed Markov trajectory model** trained from synthetic normal-reference sequences.
+AgentShield includes a **Laplace-smoothed Markov trajectory model** trained from synthetic normal-reference sequences.
 
-Tool calls are converted into behavioral states:
+Tool calls are converted into behavioral states such as:
 
 ```text
 external_read
@@ -104,7 +130,7 @@ For a proposed call it returns:
 - `anomaly_percentile` — unusualness relative to normal-reference trajectories;
 - `unusual_transition` — the final low-probability state transition, when present.
 
-Example conceptually:
+Example:
 
 ```text
 sensitive_read → external_write
@@ -112,25 +138,7 @@ sensitive_read → external_write
           unusual transition
 ```
 
-This gives the runtime layer a learned behavioral signal without requiring the policy engine to trust a neural model or an LLM.
-
-## Why sequence ML here?
-
-A static classifier sees a single call. Agent security often depends on **order**.
-
-```text
-public search → summarize
-```
-
-can be benign, while:
-
-```text
-sensitive read → external write
-```
-
-has a fundamentally different security meaning.
-
-The sequence model therefore complements—not replaces—the hard controls for intent mismatch, destructive actions, sensitive egress, unknown tools and invalid delegation.
+A static classifier sees one call. Agent security often depends on **order**, so the sequence model complements—but does not replace—hard controls.
 
 ## Architecture
 
@@ -140,19 +148,21 @@ flowchart LR
     A --> P[Deterministic policy]
     A --> S[Behavior tokenization]
     H[Recent call history] --> S
-    S --> M[Learned Markov transition model]
+    S --> M[Trajectory model]
     M --> E[Surprisal + anomaly percentile]
     P --> D{Runtime decision}
-    E --> X[Behavioral evidence]
     D --> O[Allow / Redact / Approval / Block]
-    X --> O
+    E --> O
+    O --> X[Outcome + friction events]
+    X --> Q[Security measurement]
+    Q --> R[Risk reduction · task success · latency · utility]
 ```
 
 ## MCP scope
 
-This portfolio implementation is **MCP-aware**, not a live production MCP proxy. It models the security properties needed for tool governance—tool identity, destinations, sensitive data, delegation, destructive capabilities and multi-step history—without connecting to real MCP servers or credentials.
+This portfolio implementation is **MCP-aware**, not a live production MCP proxy. It models the security properties needed for tool governance—tool identity, destinations, sensitive data, delegation, destructive capabilities, and multi-step history—without connecting to real MCP servers or credentials.
 
-A production version would add authenticated server identity, signed/versioned tool manifests, transport integrity, live tool registry state, cross-agent delegation graphs and monitored tool-definition changes.
+A production version would add authenticated server identity, signed/versioned tool manifests, transport integrity, live tool registry state, cross-agent delegation graphs, and monitored tool-definition changes.
 
 ## Run locally
 
@@ -166,39 +176,31 @@ python -m unittest discover -s tests -v
 uvicorn agentshield.api:app --reload
 ```
 
-The CLI report includes both deterministic policy outcomes and a `trajectory_ml` section with learned sequence evidence.
+The CLI report includes policy outcomes, trajectory ML evidence, and the control-measurement experiment.
 
 ## CI
 
-GitHub Actions runs on Python **3.10, 3.11 and 3.12** and validates:
-
-```text
-runtime policy tests
-trajectory ML tests
-CLI report generation
-FastAPI route smoke test
-benchmark script
-module compilation
-```
+GitHub Actions validates Python **3.10, 3.11 and 3.12** across runtime policy tests, trajectory ML tests, security-measurement tests, CLI report generation, FastAPI smoke tests, benchmarking, and module compilation.
 
 ## Security design principles
 
 - **Policy is authoritative.** ML never grants privilege or bypasses a block.
 - **Model independence.** The control plane does not need to trust the model proposing the action.
 - **Human control.** High-impact actions can require approval.
-- **Explainability.** Every policy decision includes explicit reasons; learned sequence evidence is reported separately.
+- **Explainability.** Policy reasons and learned evidence remain inspectable.
+- **Measure friction.** A control is not considered successful merely because it blocks more.
 - **Least privilege.** Unknown tools fail closed.
-- **Synthetic evaluation.** No production credentials, tool servers or customer data are used.
+- **Synthetic evaluation.** No production credentials, tool servers, or customer data are used.
 
 ## Production evolution
 
-A production implementation could train sequence models on authorized agent traces, segment peers by workflow, monitor transition drift, incorporate tool/server identity, compare Markov baselines with gradient-boosted sequence features or compact neural models, and calibrate behavioral thresholds against analyst dispositions.
+A production implementation could train sequence models on authorized agent traces, segment peers by workflow, calibrate thresholds against analyst dispositions, run assignment-aware staged experiments, monitor control-treatment interference, sensitivity-test utility weights, add rare-severity guardrails, and track security outcomes over longer horizons.
 
 Any learned model should remain advisory unless an independently governed policy explicitly authorizes automated enforcement.
 
 ## Evaluation boundary
 
-All tool calls, identities, destinations and training sequences are **synthetic**. The learned trajectory model demonstrates sequence modeling and runtime integration; it does not establish real-world attack recall, false-positive rate, or MCP compromise prediction.
+All tool calls, identities, destinations, experiments, and training sequences are **synthetic**. The project demonstrates evaluation mechanics and runtime integration; it does not establish real-world attack recall, false-positive rate, or MCP compromise prediction.
 
 AgentShield does not execute destructive actions, connect to live MCP servers, collect credentials, or modify production systems.
 
@@ -206,6 +208,6 @@ AgentShield does not execute destructive actions, connect to live MCP servers, c
 
 <div align="center">
 
-**Policy decides what an agent may do. Sequence ML helps explain whether its behavior is becoming unusual.**
+**Policy decides what an agent may do. Measurement tells us whether the policy is actually helping.**
 
 </div>
